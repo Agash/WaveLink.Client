@@ -1,8 +1,10 @@
 # WaveLink.Client (.NET 10 / Native AOT friendly)
 
+## As of yet, largly untested and in early development, but the goal is to provide a fully featured, modern, and AOT-friendly C# client for the local WebSocket JSON-RPC API exposed by Elgato Wave Link 3.x.
+
 A C# client for the local WebSocket JSON-RPC API exposed by **Elgato Wave Link 3.x**.
 
-- Target: **.NET 9.0 & .NET 10.0**, **C# 14**
+- Target: **.NET 10.0**, **C# 14**
 - Serializer: **System.Text.Json Source Generation** (100% Native AOT & Trimming compatible)
 - Extracted features: Supports hardware `DspEffects`, `IsGainLockOn`, and advanced `Channel` metadata.
 
