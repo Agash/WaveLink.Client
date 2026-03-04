@@ -5,6 +5,7 @@
 		<LangVersion>preview</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<IsPackable>true</IsPackable>
 
 		<!-- Library AOT & Trimming Settings -->
 		<IsAotCompatible>true</IsAotCompatible>
@@ -22,7 +23,13 @@
 		<RepositoryUrl>https://github.com/Agash/WaveLink.Client</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/Agash/WaveLink.Client</PackageProjectUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+
+		<MinVerTagPrefix>v</MinVerTagPrefix>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MinVer" PrivateAssets="all" Version="7.0.0" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />

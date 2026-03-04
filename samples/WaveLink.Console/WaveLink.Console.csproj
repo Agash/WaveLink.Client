@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	<PublishAot>true</PublishAot>
+	<IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
