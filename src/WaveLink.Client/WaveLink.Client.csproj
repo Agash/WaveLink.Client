@@ -18,6 +18,7 @@
 		<!-- NuGet Package Metadata -->
 		<Description>A local WebSocket JSON-RPC client for Elgato Wave Link 3.x, optimized for Native AOT and modern .NET.</Description>
 		<Authors>Agash</Authors>
+		<PackageId>WaveLink.Client</PackageId>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>Elgato;WaveLink;Wave;Link;StreamDeck;Audio;Mixer;WebSocket;JSON-RPC;NativeAOT;AOT;Microphone;DSP</PackageTags>
 		<RepositoryUrl>https://github.com/Agash/WaveLink.Client</RepositoryUrl>
