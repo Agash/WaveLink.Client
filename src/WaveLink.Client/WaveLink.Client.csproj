@@ -1,28 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-	  <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
-	  <LangVersion>preview</LangVersion>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <IsAotCompatible>true</IsAotCompatible>
-	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
-	  <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	  
-	  <!-- AOT-friendly defaults -->
-	  <PublishAot>true</PublishAot>
-	  <InvariantGlobalization>true</InvariantGlobalization>
-	  <TrimMode>partial</TrimMode>
-	  <IsTrimmable>true</IsTrimmable>
 
-	  <Description>A local WebSocket JSON-RPC client for Elgato Wave Link 3.x, optimized for Native AOT and modern .NET.</Description>
-	  <Authors>Agash</Authors>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net10.0;net9.0</TargetFrameworks>
+		<LangVersion>preview</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-	  <PackageReference Include="System.Text.Json" Version="10.0.3" />
-  </ItemGroup>
+		<!-- Library AOT & Trimming Settings -->
+		<IsAotCompatible>true</IsAotCompatible>
+		<IsTrimmable>true</IsTrimmable>
 
+		<!-- Code Quality -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
+		<!-- NuGet Package Metadata -->
+		<Description>A local WebSocket JSON-RPC client for Elgato Wave Link 3.x, optimized for Native AOT and modern .NET.</Description>
+		<Authors>Agash</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>Elgato;WaveLink;Wave;Link;StreamDeck;Audio;Mixer;WebSocket;JSON-RPC;NativeAOT;AOT;Microphone;DSP</PackageTags>
+		<RepositoryUrl>https://github.com/Agash/WaveLink.Client</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Agash/WaveLink.Client</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 </Project>
