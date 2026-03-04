@@ -2,17 +2,9 @@
 
 A C# client for the local WebSocket JSON-RPC API exposed by **Elgato Wave Link 3.x**.
 
-- Target: **.NET 10**, **C# 14**
-- Serializer: **System.Text.Json source generation** (AOT compatible)
-- Implements the same RPC surface used by the official Stream Deck **Wave Link 3** plugin:
-  - `getApplicationInfo`, `setPluginInfo`
-  - `getInputDevices`, `setInputDevice`
-  - `getOutputDevices`, `setOutputDevice`
-  - `getChannels`, `setChannel`
-  - `addToChannel`
-  - `getMixes`, `setMix`
-  - `setSubscription`
-- Dispatches notifications and maintains a lightweight state cache.
+- Target: **.NET 9.0 & .NET 10.0**, **C# 14**
+- Serializer: **System.Text.Json Source Generation** (100% Native AOT & Trimming compatible)
+- Extracted features: Supports hardware `DspEffects`, `IsGainLockOn`, and advanced `Channel` metadata.
 
 See **PROTOCOL.md** for the wire format.
 
@@ -29,8 +21,6 @@ Console.WriteLine($"{app.Name} ({app.AppId}) rev {app.InterfaceRevision}");
 
 var inputs = await client.GetInputDevicesAsync();
 var outputs = await client.GetOutputDevicesAsync();
-var channels = await client.GetChannelsAsync();
-var mixes = await client.GetMixesAsync();
 
 // Subscribe to focused app + level meters
 await client.SetSubscriptionAsync(new SetSubscriptionParams
@@ -40,14 +30,38 @@ await client.SetSubscriptionAsync(new SetSubscriptionParams
 });
 ```
 
-## Events
+## Consuming Events
+
+WaveLink.Client gives you two modern ways to consume real-time events.
+
+### Option 1: Modern `IAsyncEnumerable<T>` (Recommended)
+You can use standard `await foreach` loops to process events asynchronously without dealing with traditional event handler memory leaks.
 
 ```csharp
+// Runs asynchronously in the background
+_ = Task.Run(async () => 
+{
+    await foreach (var meters in client.StreamLevelMetersAsync(cancellationToken))
+    {
+        Console.WriteLine($"Meters updated. Channels={meters.Channels?.Count ?? 0}");
+    }
+});
+
+_ = Task.Run(async () => 
+{
+    await foreach (var app in client.StreamFocusedAppChangesAsync(cancellationToken))
+    {
+        Console.WriteLine($"Focused App Changed: {app.Name} -> {app.Channel?.Id}");
+    }
+});
+```
+
+### Option 2: Traditional .NET Events
+```csharp
 client.FocusedAppChanged += (_, e) => Console.WriteLine($"Focused: {e.Name} -> {e.Channel?.Id}");
-client.LevelMeterChanged += (_, m) => Console.WriteLine($"Meters updated. Channels={m.Channels?.Count ?? 0}");
+client.LevelMeterChanged += (_, m) => Console.WriteLine($"Meters updated.");
 ```
 
 ## Notes
-
 - This is a reverse-engineered client based on the Stream Deck plugin behavior.
-- Wave Link may add fields over time; models use `JsonExtensionData` so unknown fields are preserved and ignored by default.
+- Unknown fields introduced by newer Wave Link updates are safely preserved inside `ExtensionData` dictionaries.

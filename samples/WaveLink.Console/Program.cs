@@ -1,6 +1,6 @@
 using WaveLink.Client;
 
-var client = new WaveLinkClient();
+WaveLinkClient client = new();
 
 client.Disconnected += (_, _) => Console.WriteLine("Disconnected.");
 client.FocusedAppChanged += (_, e) => Console.WriteLine($"Focused app: {e.Name} ({e.Id}) -> channel {e.Channel?.Id}");
@@ -8,7 +8,7 @@ client.LevelMeterChanged += (_, e) => Console.WriteLine($"Level meters update: c
 
 await client.ConnectAsync();
 
-var info = await client.GetApplicationInfoAsync();
+ApplicationInfo info = await client.GetApplicationInfoAsync();
 Console.WriteLine($"Connected to: {info.Name} ({info.AppId}) rev={info.InterfaceRevision}");
 
 await client.GetInputDevicesAsync();

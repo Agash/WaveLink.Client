@@ -1,6 +1,6 @@
 # Wave Link Local WebSocket Protocol (Wave Link 3.x)
 
-This document describes the **local WebSocket JSON-RPC protocol** used by **Elgato Wave Link** and exercised by the **official Stream Deck “Wave Link 3” plugin** (newer than the Beta 4 TypeScript library you provided).
+This document describes the **local WebSocket JSON-RPC protocol** used by **Elgato Wave Link** and exercised by the **official Stream Deck “Wave Link 3” plugin**.
 
 > Notes  
 > - Transport is **local-only** (`127.0.0.1`).  
@@ -64,7 +64,7 @@ All frames are UTF-8 JSON.
 Notes:
 - `id` is an integer chosen by the client.
 - `jsonrpc` must be `"2.0"`.
-- `params` is commonly `null` for no parameters (the TS lib uses `null`; the official plugin may omit params for some calls).
+- `params` is commonly `null` for no parameters (the official plugin may omit params for some calls).
 
 ### 2.2 Response (server → client)
 Success:
@@ -103,11 +103,11 @@ Method names used by the official Stream Deck plugin:
 | `getApplicationInfo` | Identify server + protocol revision |
 | `setPluginInfo` | Inform Wave Link which Stream Deck device/plugin is connected (optional for 3rd-party clients) |
 | `getInputDevices` | List input devices and their inputs |
-| `setInputDevice` | Update input(s) on a device (mute/gain/mic-pc-mix/effects) |
+| `setInputDevice` | Update input(s) on a device (mute/gain/mic-pc-mix/effects/dspEffects) |
 | `getOutputDevices` | List output devices and main output selection |
 | `setOutputDevice` | Update output device (mute/level) OR set main output |
-| `getChannels` | List channels (including apps and per-mix data) |
-| `setChannel` | Update channel properties (mute/level per mix and more) |
+| `getChannels` | List channels (including apps, per-mix data, and overall channel states) |
+| `setChannel` | Update channel properties (overall mute/level, per mix, channel effects) |
 | `addToChannel` | Route a focused app into a channel |
 | `getMixes` | List mixes |
 | `setMix` | Update mix properties |
@@ -117,7 +117,7 @@ Method names used by the official Stream Deck plugin:
 
 ## 4. Data Shapes
 
-This section lists **minimum fields required** by the official plugin and the TS Beta 4 types, plus known optional fields.
+This section lists **minimum fields required** by the official plugin and the TS Beta 4 types, plus known optional fields reverse-engineered from the JS source.
 
 ### 4.1 ApplicationInfo (`getApplicationInfo`)
 ```json
@@ -139,20 +139,22 @@ Result:
 InputDevice (common fields):
 - `id: string`
 - `name: string`
-- `isWaveDevice: boolean` (present in TS types; observed by plugin)
+- `isWaveDevice: boolean` (observed by plugin)
 - `inputs: Input[]`
 
 Input (common fields):
 - `id: string`
 - `name: string`
 - `isMuted?: boolean`
+- `isGainLockOn?: boolean` (Hardware level gain-lock state)
 - `gain?: { "value": number, "max"?: number }`  
   - `value` is **normalized 0..1**
   - `max` is used by the plugin to map normalized value to dB (actual dB = value × max)
 - `micPcMix?: { "value": number, "isInverted"?: boolean }` (normalized 0..1)
-- `effects?: Effect[]` (from TS; official plugin uses effects in some actions)
+- `effects?: Effect[]` (Software audio effects)
+- `dspEffects?: Effect[]` (Hardware DSP audio effects)
 
-Effect (TS Beta 4):
+Effect:
 - `id: string`
 - `name: string`
 - `isEnabled: boolean`
@@ -170,6 +172,7 @@ Result:
 OutputDevice:
 - `id: string`
 - `name: string`
+- `isWaveDevice?: boolean`
 - `outputs: Output[]`
 
 Output:
@@ -188,14 +191,23 @@ Channel (common fields):
 - `id: string`
 - `name: string`
 - `type: string` (e.g., `"Software"`)
+- `isMuted?: boolean` (Overall channel mute)
+- `level?: number` (Overall channel volume, 0..1)
+- `image?: ChannelImage`
 - `apps: App[]`
 - `mixes: ChannelMix[]`
+- `effects?: Effect[]` (Software effects applied to this channel)
+
+ChannelImage:
+- `imgData?: string` (Base64 or path string)
+- `isAppIcon?: boolean`
+- `name?: string`
 
 App:
 - `id: string`
 - `name: string`
 
-ChannelMix (TS Beta 4):
+ChannelMix:
 - `mixId: string`
 - `isMuted: boolean`
 - `level: number` (0..1)
@@ -203,14 +215,15 @@ ChannelMix (TS Beta 4):
 ### 4.5 Mixes (`getMixes`)
 Result:
 ```json
-{ "mixes": [ /* Mix[] */ ] }
+{ "mixes":[ /* Mix[] */ ] }
 ```
 
-Mix (TS Beta 4):
+Mix:
 - `id: string`
 - `name: string`
 - `isMuted: boolean`
 - `level: number`
+- `image?: ChannelImage`
 
 ---
 
@@ -220,13 +233,15 @@ Mix (TS Beta 4):
 ```json
 {
   "id": "<inputDeviceId>",
-  "inputs": [
+  "inputs":[
     {
       "id": "<inputId>",
       "isMuted": true,
+      "isGainLockOn": false,
       "gain": { "value": 0.42 },
       "micPcMix": { "value": 0.75 },
-      "effects": [ { "id": "eq", "isEnabled": true } ]
+      "effects": [ { "id": "eq", "isEnabled": true } ],
+      "dspEffects": [ { "id": "clipguard", "isEnabled": true } ]
     }
   ]
 }
@@ -240,7 +255,7 @@ Two shapes are used:
 {
   "outputDevice": {
     "id": "<outputDeviceId>",
-    "outputs": [
+    "outputs":[
       { "id": "<outputId>", "isMuted": false, "level": 0.5 }
     ]
   }
@@ -258,12 +273,17 @@ Two shapes are used:
 ```
 
 ### 5.3 `setChannel`
-The protocol supports partial updates. A common shape (from TS Beta 4) is:
+The protocol supports partial updates. You can update mixes, the overall channel level, or applied software effects:
 ```json
 {
   "id": "<channelId>",
-  "mixes": [
+  "isMuted": false,
+  "level": 0.8,
+  "mixes":[
     { "mixId": "<mixId>", "isMuted": false, "level": 0.9 }
+  ],
+  "effects":[
+    { "id": "<effectId>", "isEnabled": true }
   ]
 }
 ```
@@ -291,7 +311,7 @@ Enable/disable notifications:
 `levelMeterChanged` subscriptions are **filterable** by:
 - `type`: `"input" | "output" | "channel" | "mix" | ""`
 - `id`: specific id or `"all"`
-- Some servers also return a `subId` to distinguish multiple subscriptions.
+- `subId`: specific subId (often used to narrow down mixes)
 
 ---
 
@@ -303,11 +323,11 @@ Notifications observed in the official plugin:
 |---|---|
 | `createProfileRequested` | `{ deviceType: string, mixes: string[] }` |
 | `inputDevicesChanged` | `{ inputDevices: InputDevice[] }` |
-| `inputDeviceChanged` | `{ id: string, inputs: Input[] }` (partial updates) |
+| `inputDeviceChanged` | `{ id: string, inputs: Input[] }` (partial updates, merges `isGainLockOn`, `dspEffects`, etc.) |
 | `outputDevicesChanged` | `{ mainOutput: MainOutput, outputDevices: OutputDevice[] }` |
 | `outputDeviceChanged` | `{ id: string, outputs: Output[] }` (partial updates) |
 | `channelsChanged` | `{ channels: Channel[] }` |
-| `channelChanged` | `{ id: string, ... }` (partial updates) |
+| `channelChanged` | `{ id: string, isMuted, level, image, effects, mixes, ... }` (partial updates) |
 | `mixesChanged` | `{ mixes: Mix[] }` |
 | `mixChanged` | `{ id: string, ... }` |
 | `levelMeterChanged` | `{ inputDevices: Meter[], outputDevices: Meter[], channels: Meter[], mixes: Meter[] }` |
@@ -320,10 +340,7 @@ Meter entry:
 
 ---
 
-## 7. Compatibility Notes: Official Plugin vs TS Beta 4
+## 7. Compatibility Notes: Official Plugin
 
 - **Source of truth:** This repo prefers behavior verified from the **official Stream Deck plugin**.
-- The **TS Beta 4 library** is a helpful baseline for type shapes (effects, channel mixes), but may be missing:
-  - `setPluginInfo` (present in official plugin)
-  - newer/extra notification variants and fields
 - Wave Link server may include additional fields not covered here; clients should ignore unknown fields.
