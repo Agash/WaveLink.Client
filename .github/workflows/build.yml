@@ -1,0 +1,107 @@
+# GitHub Actions workflow for building, packing, and publishing the WaveLink.Client library.
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: Build and Publish WaveLink.Client
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types:
+      - published
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: true
+  NuGetDirectory: ${{ github.workspace }}/nuget
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build_and_pack:
+    name: Build and Pack
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET SDKs
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          9.0.x
+          10.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore WaveLink.Client.slnx
+
+    - name: Clean solution
+      run: dotnet clean WaveLink.Client.slnx --configuration Release
+
+    - name: Build solution
+      run: dotnet build WaveLink.Client.slnx --configuration Release --no-restore
+
+    # TODO: 'dotnet test' step removed since there is no test project in the .slnx yet.
+
+    - name: Pack library (on main push or release)
+      if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
+      run: >
+        dotnet pack WaveLink.Client.slnx
+        --configuration Release
+        --no-build
+        -p:IncludeSymbols=true
+        -p:SymbolPackageFormat=snupkg
+        --output ${{ env.NuGetDirectory }}
+
+    - name: Upload NuGet package artifact (on main push or release)
+      if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        if-no-files-found: error
+        retention-days: 7
+        # The *nupkg wildcard captures both .nupkg and .snupkg files
+        path: ${{ env.NuGetDirectory }}/*nupkg
+
+  publish_nuget:
+    name: Publish NuGet Package
+    needs: [ build_and_pack ]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Download NuGet package artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget-package
+        path: ${{ env.NuGetDirectory }}
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+
+    - name: Display package information
+      run: Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *nupkg | ForEach-Object { $_.FullName }
+
+    - name: NuGet login (OIDC -> temp API key)
+      uses: NuGet/login@v1
+      with:
+        user: Agash
+
+    - name: Publish NuGet package to NuGet.org
+      # The dotnet nuget push command automatically pushes the .snupkg if it sits next to the .nupkg, so we only need to specify the .nupkg file here.
+      run: |
+        foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+            Write-Host "Pushing package: $($file.FullName)"
+            dotnet nuget push $file --source https://api.nuget.org/v3/index.json --skip-duplicate
+        }
