@@ -1,0 +1,53 @@
+using System.Text.Json.Serialization;
+
+namespace WaveLink.Client;
+
+[JsonSourceGenerationOptions(
+    GenerationMode = JsonSourceGenerationMode.Metadata,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.Unspecified,
+    WriteIndented = false,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+[JsonSerializable(typeof(JsonRpcRequest))]
+[JsonSerializable(typeof(JsonRpcResponse))]
+[JsonSerializable(typeof(JsonRpcNotification))]
+[JsonSerializable(typeof(JsonRpcError))]
+[JsonSerializable(typeof(ApplicationInfo))]
+[JsonSerializable(typeof(InputDevicesResult))]
+[JsonSerializable(typeof(InputDevice))]
+[JsonSerializable(typeof(Input))]
+[JsonSerializable(typeof(Gain))]
+[JsonSerializable(typeof(MicPcMix))]
+[JsonSerializable(typeof(Effect))]
+[JsonSerializable(typeof(OutputDevicesResult))]
+[JsonSerializable(typeof(MainOutput))]
+[JsonSerializable(typeof(OutputDevice))]
+[JsonSerializable(typeof(Output))]
+[JsonSerializable(typeof(ChannelsResult))]
+[JsonSerializable(typeof(Channel))]
+[JsonSerializable(typeof(AppRef))]
+[JsonSerializable(typeof(ChannelMix))]
+[JsonSerializable(typeof(MixesResult))]
+[JsonSerializable(typeof(Mix))]
+[JsonSerializable(typeof(SetInputDeviceParams))]
+[JsonSerializable(typeof(SetInputParams))]
+[JsonSerializable(typeof(GainValue))]
+[JsonSerializable(typeof(MicPcMixValue))]
+[JsonSerializable(typeof(EffectToggle))]
+[JsonSerializable(typeof(SetOutputDeviceParams))]
+[JsonSerializable(typeof(OutputDeviceUpdate))]
+[JsonSerializable(typeof(OutputUpdate))]
+[JsonSerializable(typeof(SetChannelParams))]
+[JsonSerializable(typeof(ChannelMixUpdate))]
+[JsonSerializable(typeof(SetMixParams))]
+[JsonSerializable(typeof(AddToChannelParams))]
+[JsonSerializable(typeof(SetSubscriptionParams))]
+[JsonSerializable(typeof(SubscriptionToggle))]
+[JsonSerializable(typeof(LevelMeterSubscription))]
+[JsonSerializable(typeof(SetPluginInfoParams))]
+[JsonSerializable(typeof(FocusedAppChangedParams))]
+[JsonSerializable(typeof(LevelMeterChangedParams))]
+[JsonSerializable(typeof(MeterEntry))]
+[JsonSerializable(typeof(SetSubscriptionResult))]
+[JsonSerializable(typeof(SubscriptionAck))]
+[JsonSerializable(typeof(CreateProfileRequestedParams))]
+public partial class WaveLinkJsonContext : JsonSerializerContext;
