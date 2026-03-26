@@ -1,7 +1,6 @@
-# GitHub Actions workflow for building, packing, and publishing the WaveLink.Client library.
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-name: Build and Publish WaveLink.Client
+name: Build, Pack, and Publish WaveLink.Client
 
 on:
   workflow_dispatch:
@@ -49,7 +48,8 @@ jobs:
     - name: Build solution
       run: dotnet build WaveLink.Client.slnx --configuration Release --no-restore
 
-    # TODO: 'dotnet test' step removed since there is no test project in the .slnx yet.
+    - name: Note missing test project
+      run: Write-Host "No test project is currently included in WaveLink.Client.slnx."
 
     - name: Pack library (on main push or release)
       if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'
@@ -93,15 +93,15 @@ jobs:
     - name: Display package information
       run: Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *nupkg | ForEach-Object { $_.FullName }
 
-    - name: NuGet login (OIDC -> temp API key)
+    - name: NuGet login
       uses: NuGet/login@v1
+      id: login
       with:
         user: Agash
 
     - name: Publish NuGet package to NuGet.org
-      # The dotnet nuget push command automatically pushes the .snupkg if it sits next to the .nupkg, so we only need to specify the .nupkg file here.
       run: |
         foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
             Write-Host "Pushing package: $($file.FullName)"
-            dotnet nuget push $file --source https://api.nuget.org/v3/index.json --skip-duplicate
+            dotnet nuget push $file --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
         }
