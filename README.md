@@ -1,14 +1,24 @@
-# WaveLink.Client (.NET 10 / Native AOT friendly)
+# WaveLink.Client
 
-## As of yet, largly untested and in early development, but the goal is to provide a fully featured, modern, and AOT-friendly C# client for the local WebSocket JSON-RPC API exposed by Elgato Wave Link 3.x.
-
-A C# client for the local WebSocket JSON-RPC API exposed by **Elgato Wave Link 3.x**.
+Modern .NET client for the local WebSocket JSON-RPC API exposed by Elgato Wave Link 3.x.
 
 - Target: **.NET 10.0**, **C# 14**
 - Serializer: **System.Text.Json Source Generation** (100% Native AOT & Trimming compatible)
 - Extracted features: Supports hardware `DspEffects`, `IsGainLockOn`, and advanced `Channel` metadata.
 
-See **PROTOCOL.md** for the wire format.
+The library is designed to be:
+
+- Native AOT and trimming friendly
+- strongly typed and async-first
+- useful both for local automation and higher-level mixer/control applications
+
+See [PROTOCOL.md](/C:/repos/StreamWeaver/external/WaveLink.Client/PROTOCOL.md) for the wire format notes.
+
+## Install
+
+```bash
+dotnet add package WaveLink.Client
+```
 
 ## Quick start
 
@@ -62,6 +72,20 @@ _ = Task.Run(async () =>
 ```csharp
 client.FocusedAppChanged += (_, e) => Console.WriteLine($"Focused: {e.Name} -> {e.Channel?.Id}");
 client.LevelMeterChanged += (_, m) => Console.WriteLine($"Meters updated.");
+```
+
+## Sample
+
+The repository includes a console sample:
+
+```bash
+dotnet run --project samples/WaveLink.Console
+```
+
+## Development
+
+```bash
+dotnet build WaveLink.Client.slnx -c Release
 ```
 
 ## Notes
