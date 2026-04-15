@@ -67,7 +67,7 @@ jobs:
       with:
         name: nuget-package
         if-no-files-found: error
-        retention-days: 7
+        retention-days: 1
         # The *nupkg wildcard captures both .nupkg and .snupkg files
         path: ${{ env.NuGetDirectory }}/*nupkg
 
