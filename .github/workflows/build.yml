@@ -38,6 +38,7 @@ jobs:
         dotnet-version: |
           9.0.x
           10.0.x
+          11.0.100-preview.5.26302.115
 
     - name: Restore dependencies
       run: dotnet restore WaveLink.Client.slnx

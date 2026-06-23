@@ -507,7 +507,7 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             : resultEl.Value.Deserialize(responseTypeInfo) ?? throw new WaveLinkException($"RPC '{method}' result could not be deserialized.");
     }
 
-    private Task CallVoidAsync<TParams>(string method, TParams p, JsonTypeInfo<TParams> paramsTypeInfo, CancellationToken ct)
+    private Task<JsonElement?> CallVoidAsync<TParams>(string method, TParams p, JsonTypeInfo<TParams> paramsTypeInfo, CancellationToken ct)
     {
         return CallCoreAsync(method, p, paramsTypeInfo, ct);
     }
