@@ -118,8 +118,6 @@ jobs:
         dotnet pack WaveLink.Client.slnx
         --configuration Release
         --no-build
-        -p:IncludeSymbols=true
-        -p:SymbolPackageFormat=snupkg
         --output ${{ env.NuGetDirectory }}
 
     - name: Attest build provenance
