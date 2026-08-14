@@ -28,12 +28,12 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
     - name: Setup .NET SDKs
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: |
           9.0.x
@@ -94,7 +94,7 @@ jobs:
         path: ${{ env.NuGetDirectory }}
 
     - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
 
     - name: Display package information
       run: Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *nupkg | ForEach-Object { $_.FullName }
