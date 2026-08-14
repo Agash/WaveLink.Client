@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace WaveLink.Client;
@@ -8,41 +8,41 @@ namespace WaveLink.Client;
 public sealed record SetInputDeviceParams
 {
     /// <summary>The input device ID.</summary>
-    [JsonPropertyName("id")] public required string Id { get; init; }
+    [JsonPropertyName("id")] public required string Id { get; set; }
 
     /// <summary>List of input changes to apply.</summary>
-    [JsonPropertyName("inputs")] public required List<SetInputParams> Inputs { get; init; }
+    [JsonPropertyName("inputs")] public required List<SetInputParams> Inputs { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Parameters describing changes to a single input.</summary>
 public sealed record SetInputParams
 {
     /// <summary>The input ID.</summary>
-    [JsonPropertyName("id")] public required string Id { get; init; }
+    [JsonPropertyName("id")] public required string Id { get; set; }
 
     /// <summary>Mute state to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("isMuted")] public bool? IsMuted { get; init; }
+    [JsonPropertyName("isMuted")] public bool? IsMuted { get; set; }
 
     /// <summary>Hardware gain lock state to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("isGainLockOn")] public bool? IsGainLockOn { get; init; }
+    [JsonPropertyName("isGainLockOn")] public bool? IsGainLockOn { get; set; }
 
     /// <summary>Gain value to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("gain")] public GainValue? Gain { get; init; }
+    [JsonPropertyName("gain")] public GainValue? Gain { get; set; }
 
     /// <summary>Mic/PC mix value to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("micPcMix")] public MicPcMixValue? MicPcMix { get; init; }
+    [JsonPropertyName("micPcMix")] public MicPcMixValue? MicPcMix { get; set; }
 
     /// <summary>List of software effect state changes to apply.</summary>
-    [JsonPropertyName("effects")] public List<EffectToggle>? Effects { get; init; }
+    [JsonPropertyName("effects")] public List<EffectToggle>? Effects { get; set; }
 
     /// <summary>List of hardware DSP effect state changes to apply.</summary>
-    [JsonPropertyName("dspEffects")] public List<EffectToggle>? DspEffects { get; init; }
+    [JsonPropertyName("dspEffects")] public List<EffectToggle>? DspEffects { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Represents a normalized gain value.</summary>
@@ -73,13 +73,13 @@ public sealed record EffectToggle
 public sealed record SetOutputDeviceParams
 {
     /// <summary>Output device update, or null to skip updating output devices.</summary>
-    [JsonPropertyName("outputDevice")] public OutputDeviceUpdate? OutputDevice { get; init; }
+    [JsonPropertyName("outputDevice")] public OutputDeviceUpdate? OutputDevice { get; set; }
 
     /// <summary>Main output selection, or null to skip changing the main output.</summary>
-    [JsonPropertyName("mainOutput")] public MainOutput? MainOutput { get; init; }
+    [JsonPropertyName("mainOutput")] public MainOutput? MainOutput { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Describes updates to an output device.</summary>
@@ -109,16 +109,16 @@ public sealed record OutputUpdate
 public sealed record SetChannelParams
 {
     /// <summary>The channel ID.</summary>
-    [JsonPropertyName("id")] public required string Id { get; init; }
+    [JsonPropertyName("id")] public required string Id { get; set; }
 
     /// <summary>List of mix changes to apply to this channel.</summary>
-    [JsonPropertyName("mixes")] public List<ChannelMixUpdate>? Mixes { get; init; }
+    [JsonPropertyName("mixes")] public List<ChannelMixUpdate>? Mixes { get; set; }
 
     /// <summary>List of effect changes to apply to this channel.</summary>
-    [JsonPropertyName("effects")] public List<EffectToggle>? Effects { get; init; }
+    [JsonPropertyName("effects")] public List<EffectToggle>? Effects { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Describes updates to a channel mix entry.</summary>
@@ -138,16 +138,16 @@ public sealed record ChannelMixUpdate
 public sealed record SetMixParams
 {
     /// <summary>The mix ID.</summary>
-    [JsonPropertyName("id")] public required string Id { get; init; }
+    [JsonPropertyName("id")] public required string Id { get; set; }
 
     /// <summary>Mute state to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("isMuted")] public bool? IsMuted { get; init; }
+    [JsonPropertyName("isMuted")] public bool? IsMuted { get; set; }
 
     /// <summary>Level value to apply, or null to leave unchanged.</summary>
-    [JsonPropertyName("level")] public double? Level { get; init; }
+    [JsonPropertyName("level")] public double? Level { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Parameters to add an app to a channel.</summary>
@@ -164,13 +164,13 @@ public sealed record AddToChannelParams
 public sealed record SetSubscriptionParams
 {
     /// <summary>Subscription configuration for focused app change notifications.</summary>
-    [JsonPropertyName("focusedAppChanged")] public SubscriptionToggle? FocusedAppChanged { get; init; }
+    [JsonPropertyName("focusedAppChanged")] public SubscriptionToggle? FocusedAppChanged { get; set; }
 
     /// <summary>Subscription configuration for level meter change notifications.</summary>
-    [JsonPropertyName("levelMeterChanged")] public LevelMeterSubscription? LevelMeterChanged { get; init; }
+    [JsonPropertyName("levelMeterChanged")] public LevelMeterSubscription? LevelMeterChanged { get; set; }
 
     /// <summary>Additional properties returned by the server.</summary>
-    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+    [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
 }
 
 /// <summary>Toggle to enable or disable a subscription.</summary>

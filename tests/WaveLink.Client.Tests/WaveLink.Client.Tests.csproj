@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net9.0;net10.0;net11.0</TargetFrameworks>
+		<LangVersion>preview</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<OutputType>Exe</OutputType>
+		<EnableMSTestRunner>true</EnableMSTestRunner>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<!-- IDE0005 (remove unnecessary usings) only runs when documentation generation is on, and
+		     Roslyn errors out rather than skipping it if it is not. Tests do not ship docs.
+		     CA1707 (no underscores in identifiers) is a public-API rule; test names are deliberately
+		     Method_Scenario_Expectation, which is what makes a failure readable in the run output. -->
+		<NoWarn>$(NoWarn);IDE0005;CA1707</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\WaveLink.Client\WaveLink.Client.csproj" />
+		<PackageReference Include="MSTest.TestFramework" Version="4.3.3" />
+		<PackageReference Include="MSTest.TestAdapter" Version="4.3.3" />
+		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.3.3" />
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.10.0" />
+	</ItemGroup>
+
+</Project>

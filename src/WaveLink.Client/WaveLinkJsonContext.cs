@@ -13,6 +13,13 @@ namespace WaveLink.Client;
 /// Use this context with System.Text.Json APIs to serialize or deserialize supported types in WaveLink
 /// communications.
 /// </remarks>
+// A note on the models this context serializes: every record that keeps unknown server fields in a
+// [JsonExtensionData] property declares its members as settable rather than init-only. That is not a
+// style choice. In metadata generation mode the generator cannot assign an init-only property, so it
+// routes the whole type through an object-initializer path that it models as a constructor - and
+// extension data cannot bind to a constructor parameter, so deserializing such a type throws at run
+// time. System.Text.Json 11 no longer does this; 9 and 10 still do, and this package targets all
+// three. Reintroducing init on one of those records breaks the client on two of its three targets.
 [JsonSourceGenerationOptions(
     GenerationMode = JsonSourceGenerationMode.Metadata,
     PropertyNamingPolicy = JsonKnownNamingPolicy.Unspecified,

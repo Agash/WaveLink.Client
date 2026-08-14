@@ -10,4 +10,7 @@
   <Folder Name="/src/">
     <Project Path="src/WaveLink.Client/WaveLink.Client.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WaveLink.Client.Tests/WaveLink.Client.Tests.csproj" />
+  </Folder>
 </Solution>
