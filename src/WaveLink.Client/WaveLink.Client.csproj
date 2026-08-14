@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net9.0;net10.0;net11.0</TargetFrameworks>
@@ -32,6 +32,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="MinVer" PrivateAssets="all" Version="7.0.0" />
+		<!-- Source Link plus a deterministic, source-indexed build: the package page advertises it,
+		     and a consumer can step into this code from their own debugger. -->
+		<PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5" PrivateAssets="all" />
 	</ItemGroup>
 
 	<ItemGroup>
