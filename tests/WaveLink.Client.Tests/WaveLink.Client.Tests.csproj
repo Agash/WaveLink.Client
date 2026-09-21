@@ -18,9 +18,9 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\WaveLink.Client\WaveLink.Client.csproj" />
-		<PackageReference Include="MSTest.TestFramework" Version="4.4.0" />
-		<PackageReference Include="MSTest.TestAdapter" Version="4.4.0" />
-		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.4.0" />
+		<PackageReference Include="MSTest.TestFramework" Version="4.4.1" />
+		<PackageReference Include="MSTest.TestAdapter" Version="4.4.1" />
+		<PackageReference Include="Microsoft.Testing.Platform.MSBuild" Version="2.4.1" />
 		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
 	</ItemGroup>
 
