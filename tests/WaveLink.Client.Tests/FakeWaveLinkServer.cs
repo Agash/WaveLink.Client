@@ -17,7 +17,9 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
     private readonly HttpListener _listener = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly Func<JsonElement, string?> _respond;
-    private readonly TaskCompletionSource _clientConnected = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly TaskCompletionSource _clientConnected = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
     private WebSocket? _socket;
     private Task? _acceptLoop;
     private bool _disposed;
@@ -73,7 +75,9 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
     {
         await ClientConnected.ConfigureAwait(false);
         byte[] bytes = Encoding.UTF8.GetBytes(json);
-        await _socket!.SendAsync(bytes, WebSocketMessageType.Text, endOfMessage: true, _cts.Token).ConfigureAwait(false);
+        await _socket!
+            .SendAsync(bytes, WebSocketMessageType.Text, endOfMessage: true, _cts.Token)
+            .ConfigureAwait(false);
     }
 
     private static int GetFreePort()
@@ -91,7 +95,9 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
         {
             while (!_cts.IsCancellationRequested)
             {
-                HttpListenerContext context = await _listener.GetContextAsync().ConfigureAwait(false);
+                HttpListenerContext context = await _listener
+                    .GetContextAsync()
+                    .ConfigureAwait(false);
                 if (!context.Request.IsWebSocketRequest)
                 {
                     context.Response.StatusCode = 400;
@@ -99,13 +105,20 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
                     continue;
                 }
 
-                HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(subProtocol: null).ConfigureAwait(false);
+                HttpListenerWebSocketContext wsContext = await context
+                    .AcceptWebSocketAsync(subProtocol: null)
+                    .ConfigureAwait(false);
                 _socket = wsContext.WebSocket;
                 _ = _clientConnected.TrySetResult();
                 await ServeAsync(wsContext.WebSocket).ConfigureAwait(false);
             }
         }
-        catch (Exception ex) when (ex is HttpListenerException or ObjectDisposedException or OperationCanceledException)
+        catch (Exception ex)
+            when (ex
+                    is HttpListenerException
+                        or ObjectDisposedException
+                        or OperationCanceledException
+            )
         {
             // Expected on shutdown: disposing the listener is how this loop is stopped.
         }
@@ -133,7 +146,12 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
                 // hangs every test at disposal rather than failing one.
                 try
                 {
-                    await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "bye", CancellationToken.None)
+                    await socket
+                        .CloseOutputAsync(
+                            WebSocketCloseStatus.NormalClosure,
+                            "bye",
+                            CancellationToken.None
+                        )
                         .ConfigureAwait(false);
                 }
                 catch (WebSocketException)
@@ -151,7 +169,13 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
                 continue;
             }
 
-            await socket.SendAsync(Encoding.UTF8.GetBytes(reply), WebSocketMessageType.Text, endOfMessage: true, _cts.Token)
+            await socket
+                .SendAsync(
+                    Encoding.UTF8.GetBytes(reply),
+                    WebSocketMessageType.Text,
+                    endOfMessage: true,
+                    _cts.Token
+                )
                 .ConfigureAwait(false);
         }
     }
@@ -175,7 +199,12 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
             {
                 await _acceptLoop.ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is OperationCanceledException or HttpListenerException or ObjectDisposedException)
+            catch (Exception ex)
+                when (ex
+                        is OperationCanceledException
+                            or HttpListenerException
+                            or ObjectDisposedException
+                )
             {
                 // Expected: the loop is torn down by closing the listener out from under it.
             }
@@ -189,6 +218,10 @@ internal sealed class FakeWaveLinkServer : IAsyncDisposable
     /// The reply Wave Link gives to the handshake the client performs on connect. Anything else
     /// makes ConnectAsync throw, so most tests need this to succeed before reaching their subject.
     /// </summary>
-    public static string ApplicationInfoReply(int id, string appId = "EWL", int interfaceRevision = 3) =>
+    public static string ApplicationInfoReply(
+        int id,
+        string appId = "EWL",
+        int interfaceRevision = 3
+    ) =>
         $$$"""{"jsonrpc":"2.0","id":{{{id}}},"result":{"appID":"{{{appId}}}","name":"Wave Link","interfaceRevision":{{{interfaceRevision}}}}}""";
 }

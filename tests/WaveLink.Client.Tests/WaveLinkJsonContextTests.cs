@@ -41,7 +41,10 @@ public sealed class WaveLinkJsonContextTests
             {"jsonrpc":"2.0","id":4,"error":{"code":-32601,"message":"Method not found"}}
             """;
 
-        JsonRpcResponse? response = JsonSerializer.Deserialize(payload, WaveLinkJsonContext.Default.JsonRpcResponse);
+        JsonRpcResponse? response = JsonSerializer.Deserialize(
+            payload,
+            WaveLinkJsonContext.Default.JsonRpcResponse
+        );
 
         Assert.IsNotNull(response);
         Assert.AreEqual(4, response.Id);
@@ -58,7 +61,10 @@ public sealed class WaveLinkJsonContextTests
             {"jsonrpc":"2.0","method":"focusedAppChanged","params":{"appID":"obs64.exe"}}
             """;
 
-        JsonRpcNotification? notification = JsonSerializer.Deserialize(payload, WaveLinkJsonContext.Default.JsonRpcNotification);
+        JsonRpcNotification? notification = JsonSerializer.Deserialize(
+            payload,
+            WaveLinkJsonContext.Default.JsonRpcNotification
+        );
 
         Assert.IsNotNull(notification);
         Assert.AreEqual("focusedAppChanged", notification.Method);
@@ -74,7 +80,10 @@ public sealed class WaveLinkJsonContextTests
               "inputs":[{"id":"in-1","name":"Mic","isMuted":false,"gain":{"value":0.75}}]}]}
             """;
 
-        InputDevicesResult? result = JsonSerializer.Deserialize(payload, WaveLinkJsonContext.Default.InputDevicesResult);
+        InputDevicesResult? result = JsonSerializer.Deserialize(
+            payload,
+            WaveLinkJsonContext.Default.InputDevicesResult
+        );
 
         Assert.IsNotNull(result);
         Assert.AreEqual(1, result.InputDevices.Count);
@@ -95,7 +104,10 @@ public sealed class WaveLinkJsonContextTests
             {"appID":"wavelink","interfaceRevision":3,"someFutureField":42}
             """;
 
-        ApplicationInfo? info = JsonSerializer.Deserialize(payload, WaveLinkJsonContext.Default.ApplicationInfo);
+        ApplicationInfo? info = JsonSerializer.Deserialize(
+            payload,
+            WaveLinkJsonContext.Default.ApplicationInfo
+        );
 
         Assert.IsNotNull(info);
         Assert.AreEqual("wavelink", info.AppId);
@@ -113,7 +125,10 @@ public sealed class WaveLinkJsonContextTests
             Inputs = [new SetInputParams { Id = "in-1", IsMuted = true }],
         };
 
-        string json = JsonSerializer.Serialize(parameters, WaveLinkJsonContext.Default.SetInputDeviceParams);
+        string json = JsonSerializer.Serialize(
+            parameters,
+            WaveLinkJsonContext.Default.SetInputDeviceParams
+        );
 
         // Only the field being changed is sent. Sending nulls for the rest would ask the server to
         // reinterpret every other property of the input on each call.
@@ -127,7 +142,10 @@ public sealed class WaveLinkJsonContextTests
             {"levelMeterChanged":{"isEnabled":true,"type":"input","id":"in-1"}}
             """;
 
-        SetSubscriptionResult? result = JsonSerializer.Deserialize(payload, WaveLinkJsonContext.Default.SetSubscriptionResult);
+        SetSubscriptionResult? result = JsonSerializer.Deserialize(
+            payload,
+            WaveLinkJsonContext.Default.SetSubscriptionResult
+        );
 
         Assert.IsNotNull(result);
         Assert.IsNull(result.FocusedAppChanged);

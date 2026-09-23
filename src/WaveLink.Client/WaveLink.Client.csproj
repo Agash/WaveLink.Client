@@ -1,49 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-	  <!-- Reproducibility is delegated to DotNet.ReproducibleBuilds rather than restated here.
+  <PropertyGroup>
+    <!-- Reproducibility is delegated to DotNet.ReproducibleBuilds rather than restated here.
 	       It sets DebugType to embedded (so the portable PDB with its Source Link map travels
 	       inside the assembly and no symbol package is needed), turns on
 	       ContinuousIntegrationBuild for every CI provider it recognises, and publishes the
 	       repository URL, branch and commit into the nuspec. Source Link itself ships in the
 	       SDK. Deterministic is already the SDK default. -->
-		<TargetFrameworks>net9.0;net10.0;net11.0</TargetFrameworks>
-		<LangVersion>preview</LangVersion>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<IsPackable>true</IsPackable>
+    <TargetFrameworks>net9.0;net10.0;net11.0</TargetFrameworks>
+    <LangVersion>preview</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
 
-		<!-- Library AOT & Trimming Settings -->
-		<IsAotCompatible>true</IsAotCompatible>
-		<IsTrimmable>true</IsTrimmable>
+    <!-- Library AOT & Trimming Settings -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
 
-		<!-- Code Quality -->
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Code Quality -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
-		<!-- NuGet Package Metadata -->
-		<Description>A local WebSocket JSON-RPC client for Elgato Wave Link 3.x, optimized for Native AOT and modern .NET.</Description>
-		<Authors>Agash</Authors>
-		<PackageId>WaveLink.Client</PackageId>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>Elgato;WaveLink;Wave;Link;StreamDeck;Audio;Mixer;WebSocket;JSON-RPC;NativeAOT;AOT;Microphone;DSP</PackageTags>
-		<RepositoryUrl>https://github.com/Agash/WaveLink.Client</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageProjectUrl>https://github.com/Agash/WaveLink.Client</PackageProjectUrl>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- NuGet Package Metadata -->
+    <Description>A local WebSocket JSON-RPC client for Elgato Wave Link 3.x, optimized for Native AOT and modern .NET.</Description>
+    <Authors>Agash</Authors>
+    <PackageId>WaveLink.Client</PackageId>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>Elgato;WaveLink;Wave;Link;StreamDeck;Audio;Mixer;WebSocket;JSON-RPC;NativeAOT;AOT;Microphone;DSP</PackageTags>
+    <RepositoryUrl>https://github.com/Agash/WaveLink.Client</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/Agash/WaveLink.Client</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
-		<MinVerTagPrefix>v</MinVerTagPrefix>
-	</PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="MinVer" PrivateAssets="all" Version="8.0.0" />
-		<!-- Source Link plus a deterministic, source-indexed build: the package page advertises it,
+  <ItemGroup>
+    <PackageReference Include="MinVer" PrivateAssets="all" Version="8.0.0" />
+    <!-- Source Link plus a deterministic, source-indexed build: the package page advertises it,
 		     and a consumer can step into this code from their own debugger. -->
-		<PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5" PrivateAssets="all" />
-	</ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5" PrivateAssets="all" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>

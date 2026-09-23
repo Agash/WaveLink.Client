@@ -22,7 +22,8 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     private readonly WaveLinkClientOptions _options = options ?? new WaveLinkClientOptions();
     private readonly ClientWebSocket _ws = new();
     private readonly CancellationTokenSource _cts = new();
-    private readonly ConcurrentDictionary<int, TaskCompletionSource<JsonRpcResponse>> _pending = new();
+    private readonly ConcurrentDictionary<int, TaskCompletionSource<JsonRpcResponse>> _pending =
+        new();
 
     private Task? _recvLoop;
     private int _nextId;
@@ -69,7 +70,10 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     public event EventHandler<InputDevice>? InputDeviceChanged;
 
     /// <summary>Raised when the main output or output devices list changes.</summary>
-    public event EventHandler<(MainOutput mainOutput, IReadOnlyList<OutputDevice> outputDevices)>? OutputDevicesChanged;
+    public event EventHandler<(
+        MainOutput mainOutput,
+        IReadOnlyList<OutputDevice> outputDevices
+    )>? OutputDevicesChanged;
 
     /// <summary>Raised when a single output device is added or updated.</summary>
     public event EventHandler<OutputDevice>? OutputDeviceChanged;
@@ -106,10 +110,14 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             return;
         }
 
-        int port = _options.PortOverride ?? await DiscoverPortAsync(cancellationToken).ConfigureAwait(false);
+        int port =
+            _options.PortOverride
+            ?? await DiscoverPortAsync(cancellationToken).ConfigureAwait(false);
         Uri uri = new($"ws://127.0.0.1:{port}");
 
-        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken
+        );
         timeoutCts.CancelAfter(_options.ConnectTimeout);
 
         _ws.Options.SetRequestHeader("Origin", _options.OriginHeader);
@@ -126,17 +134,22 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         _recvLoop = Task.Run(() => ReceiveLoopAsync(_cts.Token), CancellationToken.None);
 
         // Basic validation handshake
-        ApplicationInfo info = await GetApplicationInfoAsync(cancellationToken).ConfigureAwait(false);
+        ApplicationInfo info = await GetApplicationInfoAsync(cancellationToken)
+            .ConfigureAwait(false);
         ApplicationInfo = info;
 
         if (!string.Equals(info.AppId, "EWL", StringComparison.Ordinal))
         {
-            throw new WaveLinkException($"Connected server returned unexpected appID '{info.AppId}'.");
+            throw new WaveLinkException(
+                $"Connected server returned unexpected appID '{info.AppId}'."
+            );
         }
 
         if (info.InterfaceRevision < 1)
         {
-            throw new WaveLinkException($"Connected server returned unsupported interfaceRevision {info.InterfaceRevision}.");
+            throw new WaveLinkException(
+                $"Connected server returned unsupported interfaceRevision {info.InterfaceRevision}."
+            );
         }
     }
 
@@ -148,8 +161,18 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             await _cts.CancelAsync().ConfigureAwait(false);
             if (_ws.State is WebSocketState.Open or WebSocketState.CloseReceived)
             {
-                try { await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Dispose", CancellationToken.None).ConfigureAwait(false); }
-                catch { /* ignore */ }
+                try
+                {
+                    await _ws.CloseAsync(
+                            WebSocketCloseStatus.NormalClosure,
+                            "Dispose",
+                            CancellationToken.None
+                        )
+                        .ConfigureAwait(false);
+                }
+                catch
+                { /* ignore */
+                }
             }
         }
         finally
@@ -170,13 +193,23 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     /// <summary>Send plugin information to the server.</summary>
     public Task SetPluginInfoAsync(SetPluginInfoParams info, CancellationToken ct = default)
     {
-        return CallVoidAsync("setPluginInfo", info, WaveLinkJsonContext.Default.SetPluginInfoParams, ct);
+        return CallVoidAsync(
+            "setPluginInfo",
+            info,
+            WaveLinkJsonContext.Default.SetPluginInfoParams,
+            ct
+        );
     }
 
     /// <summary>Retrieve the list of input devices and update the cached state.</summary>
     public async Task<InputDevicesResult> GetInputDevicesAsync(CancellationToken ct = default)
     {
-        InputDevicesResult result = await CallAsync("getInputDevices", WaveLinkJsonContext.Default.InputDevicesResult, ct).ConfigureAwait(false);
+        InputDevicesResult result = await CallAsync(
+                "getInputDevices",
+                WaveLinkJsonContext.Default.InputDevicesResult,
+                ct
+            )
+            .ConfigureAwait(false);
         _inputDevices = result.InputDevices ?? [];
         InputDevicesChanged?.Invoke(this, _inputDevices);
         return result;
@@ -185,13 +218,23 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     /// <summary>Update an input device configuration.</summary>
     public Task SetInputDeviceAsync(SetInputDeviceParams p, CancellationToken ct = default)
     {
-        return CallVoidAsync("setInputDevice", p, WaveLinkJsonContext.Default.SetInputDeviceParams, ct);
+        return CallVoidAsync(
+            "setInputDevice",
+            p,
+            WaveLinkJsonContext.Default.SetInputDeviceParams,
+            ct
+        );
     }
 
     /// <summary>Retrieve the list of output devices and update the cached state.</summary>
     public async Task<OutputDevicesResult> GetOutputDevicesAsync(CancellationToken ct = default)
     {
-        OutputDevicesResult result = await CallAsync("getOutputDevices", WaveLinkJsonContext.Default.OutputDevicesResult, ct).ConfigureAwait(false);
+        OutputDevicesResult result = await CallAsync(
+                "getOutputDevices",
+                WaveLinkJsonContext.Default.OutputDevicesResult,
+                ct
+            )
+            .ConfigureAwait(false);
         MainOutput = result.MainOutput;
         _outputDevices = result.OutputDevices ?? [];
         OutputDevicesChanged?.Invoke(this, (result.MainOutput, _outputDevices));
@@ -201,13 +244,23 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     /// <summary>Update an output device configuration.</summary>
     public Task SetOutputDeviceAsync(SetOutputDeviceParams p, CancellationToken ct = default)
     {
-        return CallVoidAsync("setOutputDevice", p, WaveLinkJsonContext.Default.SetOutputDeviceParams, ct);
+        return CallVoidAsync(
+            "setOutputDevice",
+            p,
+            WaveLinkJsonContext.Default.SetOutputDeviceParams,
+            ct
+        );
     }
 
     /// <summary>Retrieve the list of channels and update the cached state.</summary>
     public async Task<ChannelsResult> GetChannelsAsync(CancellationToken ct = default)
     {
-        ChannelsResult result = await CallAsync("getChannels", WaveLinkJsonContext.Default.ChannelsResult, ct).ConfigureAwait(false);
+        ChannelsResult result = await CallAsync(
+                "getChannels",
+                WaveLinkJsonContext.Default.ChannelsResult,
+                ct
+            )
+            .ConfigureAwait(false);
         _channels = result.Channels ?? [];
         ChannelsChanged?.Invoke(this, _channels);
         return result;
@@ -228,7 +281,12 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     /// <summary>Retrieve the list of mixes and update the cached state.</summary>
     public async Task<MixesResult> GetMixesAsync(CancellationToken ct = default)
     {
-        MixesResult result = await CallAsync("getMixes", WaveLinkJsonContext.Default.MixesResult, ct).ConfigureAwait(false);
+        MixesResult result = await CallAsync(
+                "getMixes",
+                WaveLinkJsonContext.Default.MixesResult,
+                ct
+            )
+            .ConfigureAwait(false);
         _mixes = result.Mixes ?? [];
         MixesChanged?.Invoke(this, _mixes);
         return result;
@@ -241,9 +299,18 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     }
 
     /// <summary>Subscribe or unsubscribe to server notifications.</summary>
-    public Task<SetSubscriptionResult> SetSubscriptionAsync(SetSubscriptionParams p, CancellationToken ct = default)
+    public Task<SetSubscriptionResult> SetSubscriptionAsync(
+        SetSubscriptionParams p,
+        CancellationToken ct = default
+    )
     {
-        return CallAsync("setSubscription", p, WaveLinkJsonContext.Default.SetSubscriptionParams, WaveLinkJsonContext.Default.SetSubscriptionResult, ct);
+        return CallAsync(
+            "setSubscription",
+            p,
+            WaveLinkJsonContext.Default.SetSubscriptionParams,
+            WaveLinkJsonContext.Default.SetSubscriptionResult,
+            ct
+        );
     }
 
     #endregion
@@ -251,9 +318,12 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     #region Streams (IAsyncEnumerable)
 
     /// <summary>Streams real-time updates for input devices.</summary>
-    public async IAsyncEnumerable<InputDevice> StreamInputDeviceChangesAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<InputDevice> StreamInputDeviceChangesAsync(
+        [EnumeratorCancellation] CancellationToken ct = default
+    )
     {
-        Channel<InputDevice> channel = System.Threading.Channels.Channel.CreateUnbounded<InputDevice>();
+        Channel<InputDevice> channel =
+            System.Threading.Channels.Channel.CreateUnbounded<InputDevice>();
         void handler(object? _, InputDevice e)
         {
             _ = channel.Writer.TryWrite(e);
@@ -262,7 +332,9 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         InputDeviceChanged += handler;
         try
         {
-            await foreach (InputDevice? item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            await foreach (
+                InputDevice? item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false)
+            )
             {
                 yield return item;
             }
@@ -274,9 +346,12 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     }
 
     /// <summary>Streams real-time updates for level meters.</summary>
-    public async IAsyncEnumerable<LevelMeterChangedParams> StreamLevelMetersAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<LevelMeterChangedParams> StreamLevelMetersAsync(
+        [EnumeratorCancellation] CancellationToken ct = default
+    )
     {
-        Channel<LevelMeterChangedParams> channel = System.Threading.Channels.Channel.CreateUnbounded<LevelMeterChangedParams>();
+        Channel<LevelMeterChangedParams> channel =
+            System.Threading.Channels.Channel.CreateUnbounded<LevelMeterChangedParams>();
         void handler(object? _, LevelMeterChangedParams e)
         {
             _ = channel.Writer.TryWrite(e);
@@ -285,7 +360,11 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         LevelMeterChanged += handler;
         try
         {
-            await foreach (LevelMeterChangedParams? item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            await foreach (
+                LevelMeterChangedParams? item in channel
+                    .Reader.ReadAllAsync(ct)
+                    .ConfigureAwait(false)
+            )
             {
                 yield return item;
             }
@@ -297,9 +376,12 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     }
 
     /// <summary>Streams real-time updates for focused app changes.</summary>
-    public async IAsyncEnumerable<FocusedAppChangedParams> StreamFocusedAppChangesAsync([EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<FocusedAppChangedParams> StreamFocusedAppChangesAsync(
+        [EnumeratorCancellation] CancellationToken ct = default
+    )
     {
-        Channel<FocusedAppChangedParams> channel = System.Threading.Channels.Channel.CreateUnbounded<FocusedAppChangedParams>();
+        Channel<FocusedAppChangedParams> channel =
+            System.Threading.Channels.Channel.CreateUnbounded<FocusedAppChangedParams>();
         void handler(object? _, FocusedAppChangedParams e)
         {
             _ = channel.Writer.TryWrite(e);
@@ -308,7 +390,11 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         FocusedAppChanged += handler;
         try
         {
-            await foreach (FocusedAppChangedParams? item in channel.Reader.ReadAllAsync(ct).ConfigureAwait(false))
+            await foreach (
+                FocusedAppChangedParams? item in channel
+                    .Reader.ReadAllAsync(ct)
+                    .ConfigureAwait(false)
+            )
             {
                 yield return item;
             }
@@ -324,68 +410,133 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     #region Convenience Helpers
 
     /// <summary>Convenience: set the level for a specific output on a device.</summary>
-    public Task SetOutputLevelAsync(string outputDeviceId, string outputId, double level0to1, CancellationToken ct = default)
+    public Task SetOutputLevelAsync(
+        string outputDeviceId,
+        string outputId,
+        double level0to1,
+        CancellationToken ct = default
+    )
     {
-        return SetOutputDeviceAsync(new SetOutputDeviceParams
-        {
-            OutputDevice = new OutputDeviceUpdate
+        return SetOutputDeviceAsync(
+            new SetOutputDeviceParams
             {
-                Id = outputDeviceId,
-                Outputs = [new() { Id = outputId, Level = Clamp01(level0to1) }]
-            }
-        }, ct);
+                OutputDevice = new OutputDeviceUpdate
+                {
+                    Id = outputDeviceId,
+                    Outputs = [new() { Id = outputId, Level = Clamp01(level0to1) }],
+                },
+            },
+            ct
+        );
     }
 
     /// <summary>Convenience: set mute state for a specific output on a device.</summary>
-    public Task SetOutputMuteAsync(string outputDeviceId, string outputId, bool isMuted, CancellationToken ct = default)
+    public Task SetOutputMuteAsync(
+        string outputDeviceId,
+        string outputId,
+        bool isMuted,
+        CancellationToken ct = default
+    )
     {
-        return SetOutputDeviceAsync(new SetOutputDeviceParams
-        {
-            OutputDevice = new OutputDeviceUpdate
+        return SetOutputDeviceAsync(
+            new SetOutputDeviceParams
             {
-                Id = outputDeviceId,
-                Outputs = [new() { Id = outputId, IsMuted = isMuted }]
-            }
-        }, ct);
+                OutputDevice = new OutputDeviceUpdate
+                {
+                    Id = outputDeviceId,
+                    Outputs = [new() { Id = outputId, IsMuted = isMuted }],
+                },
+            },
+            ct
+        );
     }
 
     /// <summary>Convenience: set the main output.</summary>
-    public Task SetMainOutputAsync(string outputDeviceId, string outputId, CancellationToken ct = default)
+    public Task SetMainOutputAsync(
+        string outputDeviceId,
+        string outputId,
+        CancellationToken ct = default
+    )
     {
-        return SetOutputDeviceAsync(new SetOutputDeviceParams
-        {
-            MainOutput = new MainOutput { OutputDeviceId = outputDeviceId, OutputId = outputId }
-        }, ct);
+        return SetOutputDeviceAsync(
+            new SetOutputDeviceParams
+            {
+                MainOutput = new MainOutput
+                {
+                    OutputDeviceId = outputDeviceId,
+                    OutputId = outputId,
+                },
+            },
+            ct
+        );
     }
 
     /// <summary>Convenience: set mute state for a specific input on a device.</summary>
-    public Task SetInputMuteAsync(string inputDeviceId, string inputId, bool isMuted, CancellationToken ct = default)
+    public Task SetInputMuteAsync(
+        string inputDeviceId,
+        string inputId,
+        bool isMuted,
+        CancellationToken ct = default
+    )
     {
-        return SetInputDeviceAsync(new SetInputDeviceParams
-        {
-            Id = inputDeviceId,
-            Inputs = [new() { Id = inputId, IsMuted = isMuted }]
-        }, ct);
+        return SetInputDeviceAsync(
+            new SetInputDeviceParams
+            {
+                Id = inputDeviceId,
+                Inputs = [new() { Id = inputId, IsMuted = isMuted }],
+            },
+            ct
+        );
     }
 
     /// <summary>Convenience: set normalized gain for a specific input.</summary>
-    public Task SetInputGainNormalizedAsync(string inputDeviceId, string inputId, double value0to1, CancellationToken ct = default)
+    public Task SetInputGainNormalizedAsync(
+        string inputDeviceId,
+        string inputId,
+        double value0to1,
+        CancellationToken ct = default
+    )
     {
-        return SetInputDeviceAsync(new SetInputDeviceParams
-        {
-            Id = inputDeviceId,
-            Inputs = [new() { Id = inputId, Gain = new GainValue { Value = Clamp01(value0to1) } }]
-        }, ct);
+        return SetInputDeviceAsync(
+            new SetInputDeviceParams
+            {
+                Id = inputDeviceId,
+                Inputs =
+                [
+                    new()
+                    {
+                        Id = inputId,
+                        Gain = new GainValue { Value = Clamp01(value0to1) },
+                    },
+                ],
+            },
+            ct
+        );
     }
 
     /// <summary>Convenience: set normalized mic/PC mix for a specific input.</summary>
-    public Task SetMicPcMixNormalizedAsync(string inputDeviceId, string inputId, double value0to1, CancellationToken ct = default)
+    public Task SetMicPcMixNormalizedAsync(
+        string inputDeviceId,
+        string inputId,
+        double value0to1,
+        CancellationToken ct = default
+    )
     {
-        return SetInputDeviceAsync(new SetInputDeviceParams
-        {
-            Id = inputDeviceId,
-            Inputs = [new() { Id = inputId, MicPcMix = new MicPcMixValue { Value = Clamp01(value0to1) } }]
-        }, ct);
+        return SetInputDeviceAsync(
+            new SetInputDeviceParams
+            {
+                Id = inputDeviceId,
+                Inputs =
+                [
+                    new()
+                    {
+                        Id = inputId,
+                        MicPcMix = new MicPcMixValue { Value = Clamp01(value0to1) },
+                    },
+                ],
+            },
+            ct
+        );
     }
 
     /// <summary>Clamp a value to the range [0,1].</summary>
@@ -421,7 +572,9 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             }
         }
 
-        throw new WaveLinkException($"Unable to discover Wave Link WebSocket port (ws-info.json missing and scan {_options.MinPort}-{_options.MaxPort} failed).");
+        throw new WaveLinkException(
+            $"Unable to discover Wave Link WebSocket port (ws-info.json missing and scan {_options.MinPort}-{_options.MaxPort} failed)."
+        );
     }
 
     private static string? GetDefaultWsInfoFilePath()
@@ -437,16 +590,31 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             if (appData.EndsWith("Roaming", StringComparison.OrdinalIgnoreCase))
             {
                 string baseDir = appData[..^"Roaming".Length].TrimEnd('\\', '/');
-                return Path.Combine(baseDir, "Local", "Packages", "Elgato.WaveLink_g54w8ztgkx496", "LocalState", "ws-info.json");
+                return Path.Combine(
+                    baseDir,
+                    "Local",
+                    "Packages",
+                    "Elgato.WaveLink_g54w8ztgkx496",
+                    "LocalState",
+                    "ws-info.json"
+                );
             }
 
             string? localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
             if (!string.IsNullOrWhiteSpace(localAppData))
             {
-                return Path.Combine(localAppData, "Packages", "Elgato.WaveLink_g54w8ztgkx496", "LocalState", "ws-info.json");
+                return Path.Combine(
+                    localAppData,
+                    "Packages",
+                    "Elgato.WaveLink_g54w8ztgkx496",
+                    "LocalState",
+                    "ws-info.json"
+                );
             }
         }
-        catch { /* ignored */ }
+        catch
+        { /* ignored */
+        }
         return null;
     }
 
@@ -460,13 +628,21 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             }
 
             using FileStream stream = File.OpenRead(path);
-            using JsonDocument doc = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
-            if (doc.RootElement.TryGetProperty("port", out JsonElement portEl) && portEl.ValueKind == JsonValueKind.Number && portEl.TryGetInt32(out int port))
+            using JsonDocument doc = await JsonDocument
+                .ParseAsync(stream, cancellationToken: ct)
+                .ConfigureAwait(false);
+            if (
+                doc.RootElement.TryGetProperty("port", out JsonElement portEl)
+                && portEl.ValueKind == JsonValueKind.Number
+                && portEl.TryGetInt32(out int port)
+            )
             {
                 return port;
             }
         }
-        catch { /* ignored */ }
+        catch
+        { /* ignored */
+        }
         return null;
     }
 
@@ -475,13 +651,17 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         using ClientWebSocket ws = new();
         ws.Options.SetRequestHeader("Origin", _options.OriginHeader);
 
-        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            ct
+        );
         timeoutCts.CancelAfter(TimeSpan.FromMilliseconds(700));
 
         try
         {
-            await ws.ConnectAsync(new Uri($"ws://127.0.0.1:{port}"), timeoutCts.Token).ConfigureAwait(false);
-            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "probe", CancellationToken.None).ConfigureAwait(false);
+            await ws.ConnectAsync(new Uri($"ws://127.0.0.1:{port}"), timeoutCts.Token)
+                .ConfigureAwait(false);
+            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "probe", CancellationToken.None)
+                .ConfigureAwait(false);
             return true;
         }
         catch
@@ -491,28 +671,52 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     }
 
     // AOT-safe typed calls
-    private async Task<TResponse> CallAsync<TResponse>(string method, JsonTypeInfo<TResponse> responseTypeInfo, CancellationToken ct)
+    private async Task<TResponse> CallAsync<TResponse>(
+        string method,
+        JsonTypeInfo<TResponse> responseTypeInfo,
+        CancellationToken ct
+    )
     {
-        JsonElement? resultEl = await CallCoreAsync<object>(method, null, null, ct).ConfigureAwait(false);
+        JsonElement? resultEl = await CallCoreAsync<object>(method, null, null, ct)
+            .ConfigureAwait(false);
         return resultEl is null
             ? throw new WaveLinkException($"RPC '{method}' returned null result.")
-            : resultEl.Value.Deserialize(responseTypeInfo) ?? throw new WaveLinkException($"RPC '{method}' result could not be deserialized.");
+            : resultEl.Value.Deserialize(responseTypeInfo)
+                ?? throw new WaveLinkException($"RPC '{method}' result could not be deserialized.");
     }
 
-    private async Task<TResponse> CallAsync<TParams, TResponse>(string method, TParams p, JsonTypeInfo<TParams> paramsTypeInfo, JsonTypeInfo<TResponse> responseTypeInfo, CancellationToken ct)
+    private async Task<TResponse> CallAsync<TParams, TResponse>(
+        string method,
+        TParams p,
+        JsonTypeInfo<TParams> paramsTypeInfo,
+        JsonTypeInfo<TResponse> responseTypeInfo,
+        CancellationToken ct
+    )
     {
-        JsonElement? resultEl = await CallCoreAsync(method, p, paramsTypeInfo, ct).ConfigureAwait(false);
+        JsonElement? resultEl = await CallCoreAsync(method, p, paramsTypeInfo, ct)
+            .ConfigureAwait(false);
         return resultEl is null
             ? throw new WaveLinkException($"RPC '{method}' returned null result.")
-            : resultEl.Value.Deserialize(responseTypeInfo) ?? throw new WaveLinkException($"RPC '{method}' result could not be deserialized.");
+            : resultEl.Value.Deserialize(responseTypeInfo)
+                ?? throw new WaveLinkException($"RPC '{method}' result could not be deserialized.");
     }
 
-    private Task<JsonElement?> CallVoidAsync<TParams>(string method, TParams p, JsonTypeInfo<TParams> paramsTypeInfo, CancellationToken ct)
+    private Task<JsonElement?> CallVoidAsync<TParams>(
+        string method,
+        TParams p,
+        JsonTypeInfo<TParams> paramsTypeInfo,
+        CancellationToken ct
+    )
     {
         return CallCoreAsync(method, p, paramsTypeInfo, ct);
     }
 
-    private async Task<JsonElement?> CallCoreAsync<TParams>(string method, TParams? paramsObject, JsonTypeInfo<TParams>? paramsTypeInfo, CancellationToken ct)
+    private async Task<JsonElement?> CallCoreAsync<TParams>(
+        string method,
+        TParams? paramsObject,
+        JsonTypeInfo<TParams>? paramsTypeInfo,
+        CancellationToken ct
+    )
     {
         if (_ws.State != WebSocketState.Open)
         {
@@ -520,7 +724,9 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
         }
 
         int id = Interlocked.Increment(ref _nextId);
-        TaskCompletionSource<JsonRpcResponse> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<JsonRpcResponse> tcs = new(
+            TaskCreationOptions.RunContinuationsAsynchronously
+        );
         if (!_pending.TryAdd(id, tcs))
         {
             throw new WaveLinkException("Failed to register pending RPC.");
@@ -534,17 +740,26 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             paramsEl = doc.RootElement.Clone();
         }
 
-        JsonRpcRequest req = new() { Id = id, Method = method, Params = paramsEl };
+        JsonRpcRequest req = new()
+        {
+            Id = id,
+            Method = method,
+            Params = paramsEl,
+        };
         string payload = JsonSerializer.Serialize(req, WaveLinkJsonContext.Default.JsonRpcRequest);
 
         await SendTextAsync(payload, ct).ConfigureAwait(false);
 
-        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+            ct
+        );
         timeoutCts.CancelAfter(_options.RequestTimeout);
 
         try
         {
-            await using CancellationTokenRegistration _ = timeoutCts.Token.Register(() => tcs.TrySetCanceled(timeoutCts.Token));
+            await using CancellationTokenRegistration _ = timeoutCts.Token.Register(() =>
+                tcs.TrySetCanceled(timeoutCts.Token)
+            );
             JsonRpcResponse resp = await tcs.Task.ConfigureAwait(false);
 
             if (resp.Error is not null)
@@ -564,7 +779,13 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
     private async Task SendTextAsync(string text, CancellationToken ct)
     {
         byte[] bytes = Encoding.UTF8.GetBytes(text);
-        await _ws.SendAsync(bytes, WebSocketMessageType.Text, endOfMessage: true, cancellationToken: ct).ConfigureAwait(false);
+        await _ws.SendAsync(
+                bytes,
+                WebSocketMessageType.Text,
+                endOfMessage: true,
+                cancellationToken: ct
+            )
+            .ConfigureAwait(false);
     }
 
     private async Task ReceiveLoopAsync(CancellationToken ct)
@@ -588,8 +809,7 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
                     }
 
                     _ = sb.Append(Encoding.UTF8.GetString(buffer, 0, result.Count));
-                }
-                while (!result.EndOfMessage);
+                } while (!result.EndOfMessage);
 
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
@@ -618,10 +838,19 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
 
-            if (root.TryGetProperty("id", out JsonElement idEl) && idEl.ValueKind == JsonValueKind.Number && idEl.TryGetInt32(out int id))
+            if (
+                root.TryGetProperty("id", out JsonElement idEl)
+                && idEl.ValueKind == JsonValueKind.Number
+                && idEl.TryGetInt32(out int id)
+            )
             {
-                JsonRpcResponse? resp = root.Deserialize(WaveLinkJsonContext.Default.JsonRpcResponse);
-                if (resp is not null && _pending.TryGetValue(id, out TaskCompletionSource<JsonRpcResponse>? tcs))
+                JsonRpcResponse? resp = root.Deserialize(
+                    WaveLinkJsonContext.Default.JsonRpcResponse
+                );
+                if (
+                    resp is not null
+                    && _pending.TryGetValue(id, out TaskCompletionSource<JsonRpcResponse>? tcs)
+                )
                 {
                     _ = tcs.TrySetResult(resp);
                 }
@@ -629,10 +858,15 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
                 return;
             }
 
-            if (root.TryGetProperty("method", out JsonElement methodEl) && methodEl.ValueKind == JsonValueKind.String)
+            if (
+                root.TryGetProperty("method", out JsonElement methodEl)
+                && methodEl.ValueKind == JsonValueKind.String
+            )
             {
                 string method = methodEl.GetString() ?? string.Empty;
-                JsonElement? p = root.TryGetProperty("params", out JsonElement paramsEl) ? paramsEl.Clone() : null;
+                JsonElement? p = root.TryGetProperty("params", out JsonElement paramsEl)
+                    ? paramsEl.Clone()
+                    : null;
                 DispatchNotification(method, p);
             }
         }
@@ -649,251 +883,271 @@ public sealed class WaveLinkClient(WaveLinkClientOptions? options = null) : IAsy
             switch (method)
             {
                 case "inputDevicesChanged":
+                {
+                    InputDevicesResult? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.InputDevicesResult
+                    );
+                    if (parsed?.InputDevices is not null)
                     {
-                        InputDevicesResult? parsed = p?.Deserialize(WaveLinkJsonContext.Default.InputDevicesResult);
-                        if (parsed?.InputDevices is not null)
-                        {
-                            _inputDevices = parsed.InputDevices;
-                            InputDevicesChanged?.Invoke(this, _inputDevices);
-                        }
-                        break;
+                        _inputDevices = parsed.InputDevices;
+                        InputDevicesChanged?.Invoke(this, _inputDevices);
                     }
+                    break;
+                }
                 case "inputDeviceChanged":
+                {
+                    if (
+                        p is null
+                        || !p.Value.TryGetProperty("id", out JsonElement idEl)
+                        || idEl.ValueKind != JsonValueKind.String
+                    )
                     {
-                        if (p is null || !p.Value.TryGetProperty("id", out JsonElement idEl) || idEl.ValueKind != JsonValueKind.String)
-                        {
-                            break;
-                        }
-
-                        string devId = idEl.GetString()!;
-                        InputDevice? update = p.Value.Deserialize(WaveLinkJsonContext.Default.InputDevice);
-                        if (update is null)
-                        {
-                            break;
-                        }
-
-                        int idx = _inputDevices.FindIndex(d => d.Id == devId);
-                        if (idx >= 0)
-                        {
-                            InputDevice existing = _inputDevices[idx];
-                            List<Input> inputs = [.. existing.Inputs];
-                            foreach (Input inUpd in update.Inputs)
-                            {
-                                int iidx = inputs.FindIndex(x => x.Id == inUpd.Id);
-                                if (iidx >= 0)
-                                {
-                                    Input old = inputs[iidx];
-                                    inputs[iidx] = old with
-                                    {
-                                        Name = inUpd.Name ?? old.Name,
-                                        IsMuted = inUpd.IsMuted ?? old.IsMuted,
-                                        IsGainLockOn = inUpd.IsGainLockOn ?? old.IsGainLockOn,
-                                        Gain = inUpd.Gain ?? old.Gain,
-                                        MicPcMix = inUpd.MicPcMix ?? old.MicPcMix,
-                                        Effects = inUpd.Effects ?? old.Effects,
-                                        DspEffects = inUpd.DspEffects ?? old.DspEffects,
-                                        ExtensionData = inUpd.ExtensionData ?? old.ExtensionData
-                                    };
-                                }
-                                else
-                                {
-                                    inputs.Add(inUpd);
-                                }
-                            }
-                            InputDevice merged = existing with { Inputs = inputs };
-                            _inputDevices[idx] = merged;
-                            InputDeviceChanged?.Invoke(this, merged);
-                        }
-                        else
-                        {
-                            _inputDevices.Add(update);
-                            InputDeviceChanged?.Invoke(this, update);
-                        }
                         break;
                     }
+
+                    string devId = idEl.GetString()!;
+                    InputDevice? update = p.Value.Deserialize(
+                        WaveLinkJsonContext.Default.InputDevice
+                    );
+                    if (update is null)
+                    {
+                        break;
+                    }
+
+                    int idx = _inputDevices.FindIndex(d => d.Id == devId);
+                    if (idx >= 0)
+                    {
+                        InputDevice existing = _inputDevices[idx];
+                        List<Input> inputs = [.. existing.Inputs];
+                        foreach (Input inUpd in update.Inputs)
+                        {
+                            int iidx = inputs.FindIndex(x => x.Id == inUpd.Id);
+                            if (iidx >= 0)
+                            {
+                                Input old = inputs[iidx];
+                                inputs[iidx] = old with
+                                {
+                                    Name = inUpd.Name ?? old.Name,
+                                    IsMuted = inUpd.IsMuted ?? old.IsMuted,
+                                    IsGainLockOn = inUpd.IsGainLockOn ?? old.IsGainLockOn,
+                                    Gain = inUpd.Gain ?? old.Gain,
+                                    MicPcMix = inUpd.MicPcMix ?? old.MicPcMix,
+                                    Effects = inUpd.Effects ?? old.Effects,
+                                    DspEffects = inUpd.DspEffects ?? old.DspEffects,
+                                    ExtensionData = inUpd.ExtensionData ?? old.ExtensionData,
+                                };
+                            }
+                            else
+                            {
+                                inputs.Add(inUpd);
+                            }
+                        }
+                        InputDevice merged = existing with { Inputs = inputs };
+                        _inputDevices[idx] = merged;
+                        InputDeviceChanged?.Invoke(this, merged);
+                    }
+                    else
+                    {
+                        _inputDevices.Add(update);
+                        InputDeviceChanged?.Invoke(this, update);
+                    }
+                    break;
+                }
                 case "outputDevicesChanged":
+                {
+                    OutputDevicesResult? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.OutputDevicesResult
+                    );
+                    if (parsed is not null)
                     {
-                        OutputDevicesResult? parsed = p?.Deserialize(WaveLinkJsonContext.Default.OutputDevicesResult);
-                        if (parsed is not null)
-                        {
-                            MainOutput = parsed.MainOutput;
-                            _outputDevices = parsed.OutputDevices ?? [];
-                            OutputDevicesChanged?.Invoke(this, (parsed.MainOutput, _outputDevices));
-                        }
-                        break;
+                        MainOutput = parsed.MainOutput;
+                        _outputDevices = parsed.OutputDevices ?? [];
+                        OutputDevicesChanged?.Invoke(this, (parsed.MainOutput, _outputDevices));
                     }
+                    break;
+                }
                 case "outputDeviceChanged":
+                {
+                    if (p is null)
                     {
-                        if (p is null)
-                        {
-                            break;
-                        }
+                        break;
+                    }
 
-                        OutputDevice? update = p.Value.Deserialize(WaveLinkJsonContext.Default.OutputDevice);
-                        if (update is null)
-                        {
-                            break;
-                        }
+                    OutputDevice? update = p.Value.Deserialize(
+                        WaveLinkJsonContext.Default.OutputDevice
+                    );
+                    if (update is null)
+                    {
+                        break;
+                    }
 
-                        int idx = _outputDevices.FindIndex(d => d.Id == update.Id);
-                        if (idx >= 0)
+                    int idx = _outputDevices.FindIndex(d => d.Id == update.Id);
+                    if (idx >= 0)
+                    {
+                        OutputDevice existing = _outputDevices[idx];
+                        List<Output> outputs = [.. existing.Outputs];
+                        foreach (Output oUpd in update.Outputs)
                         {
-                            OutputDevice existing = _outputDevices[idx];
-                            List<Output> outputs = [.. existing.Outputs];
-                            foreach (Output oUpd in update.Outputs)
+                            int oidx = outputs.FindIndex(x => x.Id == oUpd.Id);
+                            if (oidx >= 0)
                             {
-                                int oidx = outputs.FindIndex(x => x.Id == oUpd.Id);
-                                if (oidx >= 0)
+                                Output old = outputs[oidx];
+                                outputs[oidx] = old with
                                 {
-                                    Output old = outputs[oidx];
-                                    outputs[oidx] = old with
-                                    {
-                                        Name = oUpd.Name ?? old.Name,
-                                        IsMuted = oUpd.IsMuted ?? old.IsMuted,
-                                        Level = oUpd.Level ?? old.Level,
-                                        ExtensionData = oUpd.ExtensionData ?? old.ExtensionData
-                                    };
-                                }
-                                else
-                                {
-                                    outputs.Add(oUpd);
-                                }
+                                    Name = oUpd.Name ?? old.Name,
+                                    IsMuted = oUpd.IsMuted ?? old.IsMuted,
+                                    Level = oUpd.Level ?? old.Level,
+                                    ExtensionData = oUpd.ExtensionData ?? old.ExtensionData,
+                                };
                             }
-                            OutputDevice merged = existing with { Outputs = outputs };
-                            _outputDevices[idx] = merged;
-                            OutputDeviceChanged?.Invoke(this, merged);
+                            else
+                            {
+                                outputs.Add(oUpd);
+                            }
                         }
-                        else
-                        {
-                            _outputDevices.Add(update);
-                            OutputDeviceChanged?.Invoke(this, update);
-                        }
-                        break;
+                        OutputDevice merged = existing with { Outputs = outputs };
+                        _outputDevices[idx] = merged;
+                        OutputDeviceChanged?.Invoke(this, merged);
                     }
+                    else
+                    {
+                        _outputDevices.Add(update);
+                        OutputDeviceChanged?.Invoke(this, update);
+                    }
+                    break;
+                }
                 case "channelsChanged":
+                {
+                    ChannelsResult? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.ChannelsResult
+                    );
+                    if (parsed?.Channels is not null)
                     {
-                        ChannelsResult? parsed = p?.Deserialize(WaveLinkJsonContext.Default.ChannelsResult);
-                        if (parsed?.Channels is not null)
-                        {
-                            _channels = parsed.Channels;
-                            ChannelsChanged?.Invoke(this, _channels);
-                        }
-                        break;
+                        _channels = parsed.Channels;
+                        ChannelsChanged?.Invoke(this, _channels);
                     }
+                    break;
+                }
                 case "channelChanged":
+                {
+                    if (p is null)
                     {
-                        if (p is null)
-                        {
-                            break;
-                        }
-
-                        Channel? update = p.Value.Deserialize(WaveLinkJsonContext.Default.Channel);
-                        if (update is null)
-                        {
-                            break;
-                        }
-
-                        int idx = _channels.FindIndex(c => c.Id == update.Id);
-                        if (idx >= 0)
-                        {
-                            Channel existing = _channels[idx];
-                            Channel merged = existing with
-                            {
-                                Name = update.Name ?? existing.Name,
-                                Type = update.Type ?? existing.Type,
-                                IsMuted = update.IsMuted ?? existing.IsMuted,
-                                Level = update.Level ?? existing.Level,
-                                Image = update.Image ?? existing.Image,
-                                Apps = update.Apps ?? existing.Apps,
-                                Mixes = update.Mixes ?? existing.Mixes,
-                                Effects = update.Effects ?? existing.Effects,
-                                ExtensionData = update.ExtensionData ?? existing.ExtensionData
-                            };
-                            _channels[idx] = merged;
-                            ChannelChanged?.Invoke(this, merged);
-                        }
-                        else
-                        {
-                            _channels.Add(update);
-                            ChannelChanged?.Invoke(this, update);
-                        }
                         break;
                     }
+
+                    Channel? update = p.Value.Deserialize(WaveLinkJsonContext.Default.Channel);
+                    if (update is null)
+                    {
+                        break;
+                    }
+
+                    int idx = _channels.FindIndex(c => c.Id == update.Id);
+                    if (idx >= 0)
+                    {
+                        Channel existing = _channels[idx];
+                        Channel merged = existing with
+                        {
+                            Name = update.Name ?? existing.Name,
+                            Type = update.Type ?? existing.Type,
+                            IsMuted = update.IsMuted ?? existing.IsMuted,
+                            Level = update.Level ?? existing.Level,
+                            Image = update.Image ?? existing.Image,
+                            Apps = update.Apps ?? existing.Apps,
+                            Mixes = update.Mixes ?? existing.Mixes,
+                            Effects = update.Effects ?? existing.Effects,
+                            ExtensionData = update.ExtensionData ?? existing.ExtensionData,
+                        };
+                        _channels[idx] = merged;
+                        ChannelChanged?.Invoke(this, merged);
+                    }
+                    else
+                    {
+                        _channels.Add(update);
+                        ChannelChanged?.Invoke(this, update);
+                    }
+                    break;
+                }
                 case "mixesChanged":
+                {
+                    MixesResult? parsed = p?.Deserialize(WaveLinkJsonContext.Default.MixesResult);
+                    if (parsed?.Mixes is not null)
                     {
-                        MixesResult? parsed = p?.Deserialize(WaveLinkJsonContext.Default.MixesResult);
-                        if (parsed?.Mixes is not null)
-                        {
-                            _mixes = parsed.Mixes;
-                            MixesChanged?.Invoke(this, _mixes);
-                        }
-                        break;
+                        _mixes = parsed.Mixes;
+                        MixesChanged?.Invoke(this, _mixes);
                     }
+                    break;
+                }
                 case "mixChanged":
+                {
+                    if (p is null)
                     {
-                        if (p is null)
-                        {
-                            break;
-                        }
-
-                        Mix? update = p.Value.Deserialize(WaveLinkJsonContext.Default.Mix);
-                        if (update is null)
-                        {
-                            break;
-                        }
-
-                        int idx = _mixes.FindIndex(m => m.Id == update.Id);
-                        if (idx >= 0)
-                        {
-                            Mix existing = _mixes[idx];
-                            Mix merged = existing with
-                            {
-                                Name = update.Name ?? existing.Name,
-                                IsMuted = update.IsMuted ?? existing.IsMuted,
-                                Level = update.Level ?? existing.Level,
-                                Image = update.Image ?? existing.Image,
-                                ExtensionData = update.ExtensionData ?? existing.ExtensionData
-                            };
-                            _mixes[idx] = merged;
-                            MixChanged?.Invoke(this, merged);
-                        }
-                        else
-                        {
-                            _mixes.Add(update);
-                            MixChanged?.Invoke(this, update);
-                        }
                         break;
                     }
+
+                    Mix? update = p.Value.Deserialize(WaveLinkJsonContext.Default.Mix);
+                    if (update is null)
+                    {
+                        break;
+                    }
+
+                    int idx = _mixes.FindIndex(m => m.Id == update.Id);
+                    if (idx >= 0)
+                    {
+                        Mix existing = _mixes[idx];
+                        Mix merged = existing with
+                        {
+                            Name = update.Name ?? existing.Name,
+                            IsMuted = update.IsMuted ?? existing.IsMuted,
+                            Level = update.Level ?? existing.Level,
+                            Image = update.Image ?? existing.Image,
+                            ExtensionData = update.ExtensionData ?? existing.ExtensionData,
+                        };
+                        _mixes[idx] = merged;
+                        MixChanged?.Invoke(this, merged);
+                    }
+                    else
+                    {
+                        _mixes.Add(update);
+                        MixChanged?.Invoke(this, update);
+                    }
+                    break;
+                }
                 case "levelMeterChanged":
+                {
+                    LevelMeterChangedParams? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.LevelMeterChangedParams
+                    );
+                    if (parsed is not null)
                     {
-                        LevelMeterChangedParams? parsed = p?.Deserialize(WaveLinkJsonContext.Default.LevelMeterChangedParams);
-                        if (parsed is not null)
-                        {
-                            LevelMeters = parsed;
-                            LevelMeterChanged?.Invoke(this, parsed);
-                        }
-                        break;
+                        LevelMeters = parsed;
+                        LevelMeterChanged?.Invoke(this, parsed);
                     }
+                    break;
+                }
                 case "createProfileRequested":
+                {
+                    CreateProfileRequestedParams? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.CreateProfileRequestedParams
+                    );
+                    if (parsed is not null)
                     {
-                        CreateProfileRequestedParams? parsed = p?.Deserialize(WaveLinkJsonContext.Default.CreateProfileRequestedParams);
-                        if (parsed is not null)
-                        {
-                            CreateProfileRequested?.Invoke(this, parsed);
-                        }
+                        CreateProfileRequested?.Invoke(this, parsed);
+                    }
 
-                        break;
-                    }
+                    break;
+                }
                 case "focusedAppChanged":
+                {
+                    FocusedAppChangedParams? parsed = p?.Deserialize(
+                        WaveLinkJsonContext.Default.FocusedAppChangedParams
+                    );
+                    if (parsed is not null)
                     {
-                        FocusedAppChangedParams? parsed = p?.Deserialize(WaveLinkJsonContext.Default.FocusedAppChangedParams);
-                        if (parsed is not null)
-                        {
-                            FocusedApp = parsed;
-                            FocusedAppChanged?.Invoke(this, parsed);
-                        }
-                        break;
+                        FocusedApp = parsed;
+                        FocusedAppChanged?.Invoke(this, parsed);
                     }
+                    break;
+                }
             }
         }
         catch
