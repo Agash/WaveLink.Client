@@ -10,11 +10,15 @@ namespace WaveLink.Client.Tests;
 [TestClass]
 public sealed class PortDiscoveryTests
 {
-    private static int IdOf(System.Text.Json.JsonElement request) => request.GetProperty("id").GetInt32();
+    private static int IdOf(System.Text.Json.JsonElement request) =>
+        request.GetProperty("id").GetInt32();
 
     private string WriteWsInfo(string contents)
     {
-        string path = Path.Combine(TestContext.TestRunResultsDirectory ?? Path.GetTempPath(), $"ws-info-{Guid.NewGuid():N}.json");
+        string path = Path.Combine(
+            TestContext.TestRunResultsDirectory ?? Path.GetTempPath(),
+            $"ws-info-{Guid.NewGuid():N}.json"
+        );
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, contents);
         return path;
@@ -23,19 +27,22 @@ public sealed class PortDiscoveryTests
     [TestMethod]
     public async Task ConnectAsync_WhenWsInfoNamesThePort_UsesIt()
     {
-        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(
-            request => FakeWaveLinkServer.ApplicationInfoReply(IdOf(request)));
+        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(request =>
+            FakeWaveLinkServer.ApplicationInfoReply(IdOf(request))
+        );
 
         // The scan range is set past the server's port, so connecting can only succeed by way of
         // the file. Otherwise this test would pass even if the file were ignored entirely.
-        await using WaveLinkClient client = new(new WaveLinkClientOptions
-        {
-            WsInfoFilePathOverride = WriteWsInfo($$$"""{"port":{{{server.Port}}}}"""),
-            MinPort = 1,
-            MaxPort = 1,
-            ConnectTimeout = TimeSpan.FromSeconds(10),
-            RequestTimeout = TimeSpan.FromSeconds(10),
-        });
+        await using WaveLinkClient client = new(
+            new WaveLinkClientOptions
+            {
+                WsInfoFilePathOverride = WriteWsInfo($$$"""{"port":{{{server.Port}}}}"""),
+                MinPort = 1,
+                MaxPort = 1,
+                ConnectTimeout = TimeSpan.FromSeconds(10),
+                RequestTimeout = TimeSpan.FromSeconds(10),
+            }
+        );
 
         await client.ConnectAsync(TestContext.CancellationTokenSource.Token);
 
@@ -45,19 +52,22 @@ public sealed class PortDiscoveryTests
     [TestMethod]
     public async Task ConnectAsync_WhenWsInfoIsUnusable_FallsBackToScanning()
     {
-        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(
-            request => FakeWaveLinkServer.ApplicationInfoReply(IdOf(request)));
+        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(request =>
+            FakeWaveLinkServer.ApplicationInfoReply(IdOf(request))
+        );
 
-        await using WaveLinkClient client = new(new WaveLinkClientOptions
-        {
-            // Wave Link leaves this file behind after it exits, so a stale or truncated one is the
-            // normal case rather than an exotic one. It must not stop discovery.
-            WsInfoFilePathOverride = WriteWsInfo("{ this is not valid json"),
-            MinPort = server.Port,
-            MaxPort = server.Port,
-            ConnectTimeout = TimeSpan.FromSeconds(10),
-            RequestTimeout = TimeSpan.FromSeconds(10),
-        });
+        await using WaveLinkClient client = new(
+            new WaveLinkClientOptions
+            {
+                // Wave Link leaves this file behind after it exits, so a stale or truncated one is the
+                // normal case rather than an exotic one. It must not stop discovery.
+                WsInfoFilePathOverride = WriteWsInfo("{ this is not valid json"),
+                MinPort = server.Port,
+                MaxPort = server.Port,
+                ConnectTimeout = TimeSpan.FromSeconds(10),
+                RequestTimeout = TimeSpan.FromSeconds(10),
+            }
+        );
 
         await client.ConnectAsync(TestContext.CancellationTokenSource.Token);
 
@@ -67,17 +77,23 @@ public sealed class PortDiscoveryTests
     [TestMethod]
     public async Task ConnectAsync_WhenWsInfoIsMissing_FallsBackToScanning()
     {
-        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(
-            request => FakeWaveLinkServer.ApplicationInfoReply(IdOf(request)));
+        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(request =>
+            FakeWaveLinkServer.ApplicationInfoReply(IdOf(request))
+        );
 
-        await using WaveLinkClient client = new(new WaveLinkClientOptions
-        {
-            WsInfoFilePathOverride = Path.Combine(Path.GetTempPath(), $"absent-{Guid.NewGuid():N}.json"),
-            MinPort = server.Port,
-            MaxPort = server.Port,
-            ConnectTimeout = TimeSpan.FromSeconds(10),
-            RequestTimeout = TimeSpan.FromSeconds(10),
-        });
+        await using WaveLinkClient client = new(
+            new WaveLinkClientOptions
+            {
+                WsInfoFilePathOverride = Path.Combine(
+                    Path.GetTempPath(),
+                    $"absent-{Guid.NewGuid():N}.json"
+                ),
+                MinPort = server.Port,
+                MaxPort = server.Port,
+                ConnectTimeout = TimeSpan.FromSeconds(10),
+                RequestTimeout = TimeSpan.FromSeconds(10),
+            }
+        );
 
         await client.ConnectAsync(TestContext.CancellationTokenSource.Token);
 
@@ -88,22 +104,32 @@ public sealed class PortDiscoveryTests
     public async Task ConnectAsync_WhenNothingAnswersInTheRange_ReportsTheRangeItTried()
     {
         // Bind a port and immediately release it, so the range is real but certainly empty.
-        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(
-            request => FakeWaveLinkServer.ApplicationInfoReply(IdOf(request)));
+        await using FakeWaveLinkServer server = FakeWaveLinkServer.Start(request =>
+            FakeWaveLinkServer.ApplicationInfoReply(IdOf(request))
+        );
         int emptyPort = server.Port;
         await server.DisposeAsync();
 
-        await using WaveLinkClient client = new(new WaveLinkClientOptions
-        {
-            WsInfoFilePathOverride = Path.Combine(Path.GetTempPath(), $"absent-{Guid.NewGuid():N}.json"),
-            MinPort = emptyPort,
-            MaxPort = emptyPort,
-        });
+        await using WaveLinkClient client = new(
+            new WaveLinkClientOptions
+            {
+                WsInfoFilePathOverride = Path.Combine(
+                    Path.GetTempPath(),
+                    $"absent-{Guid.NewGuid():N}.json"
+                ),
+                MinPort = emptyPort,
+                MaxPort = emptyPort,
+            }
+        );
 
-        WaveLinkException ex = await Assert.ThrowsAsync<WaveLinkException>(
-            () => client.ConnectAsync(TestContext.CancellationTokenSource.Token));
+        WaveLinkException ex = await Assert.ThrowsAsync<WaveLinkException>(() =>
+            client.ConnectAsync(TestContext.CancellationTokenSource.Token)
+        );
 
-        Assert.IsTrue(ex.Message.Contains($"{emptyPort}-{emptyPort}", StringComparison.Ordinal), ex.Message);
+        Assert.IsTrue(
+            ex.Message.Contains($"{emptyPort}-{emptyPort}", StringComparison.Ordinal),
+            ex.Message
+        );
     }
 
     [TestMethod]

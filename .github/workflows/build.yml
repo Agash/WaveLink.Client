@@ -49,6 +49,11 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore WaveLink.Client.slnx
 
+    - name: Check formatting
+      run: |
+        dotnet tool restore
+        dotnet csharpier check .
+
     - name: Clean solution
       run: dotnet clean WaveLink.Client.slnx --configuration Release
 
