@@ -1,11 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <!-- The runtime pack is what a self-contained/AOT publish resolves, and the graph flags any
-         10.0.10 or older. Pin the serviced patch so the sample does not carry a known advisory. -->
-    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'net10.0'"
-      >10.0.11</RuntimeFrameworkVersion>
+    <TargetFramework>net11.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
