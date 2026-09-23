@@ -7,12 +7,11 @@
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>
     <EnableMSTestRunner>true</EnableMSTestRunner>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <!-- IDE0005 (remove unnecessary usings) only runs when documentation generation is on, and
-		     Roslyn errors out rather than skipping it if it is not. Tests do not ship docs.
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: public test classes carry no XML docs.
 		     CA1707 (no underscores in identifiers) is a public-API rule; test names are deliberately
 		     Method_Scenario_Expectation, which is what makes a failure readable in the run output. -->
-    <NoWarn>$(NoWarn);IDE0005;CA1707</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
