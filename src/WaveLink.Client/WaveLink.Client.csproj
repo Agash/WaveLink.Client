@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- Reproducibility is delegated to DotNet.ReproducibleBuilds rather than restated here.
 	       It sets DebugType to embedded (so the portable PDB with its Source Link map travels
@@ -35,10 +35,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MinVer" PrivateAssets="all" Version="8.0.0" />
+    <PackageReference Include="MinVer" PrivateAssets="all" />
     <!-- Source Link plus a deterministic, source-indexed build: the package page advertises it,
 		     and a consumer can step into this code from their own debugger. -->
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5" PrivateAssets="all" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
